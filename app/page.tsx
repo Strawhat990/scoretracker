@@ -131,21 +131,21 @@ export default function DashboardPage() {
   return (
     <main className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-8 sm:px-6">
       {/* Header */}
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="mb-1 font-mono text-xs uppercase tracking-widest text-white/40">
             Trimester 1
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h1
-              className="font-serif text-[26px] font-bold leading-tight text-white sm:text-3xl"
+              className="whitespace-nowrap font-serif text-[26px] font-bold leading-tight text-white sm:text-3xl"
               style={{ textShadow: "0 0 30px rgba(147,197,253,0.25)" }}
             >
               Grade Tracker
             </h1>
             <button
               onClick={() => setProfileModalOpen(true)}
-              className="mt-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-white/60 transition-colors hover:bg-white/10 hover:text-white"
             >
               {profileName || profileRegNo ? (
                 <>
@@ -156,13 +156,13 @@ export default function DashboardPage() {
               )}
             </button>
           </div>
-          <p className="mt-1 text-sm text-white/50">
+          <p className="mt-2 text-sm text-white/50">
             Average across {subjects.length} subjects:{" "}
             <span className="font-mono font-semibold text-white">{overall.toFixed(1)}</span>
             <span className="text-white/40">/100</span>
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <button
             onClick={() => setAnalyticsOpen(true)}
             className="glass-card flex shrink-0 items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-white/80 hover:text-white"
