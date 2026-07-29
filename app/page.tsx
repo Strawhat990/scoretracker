@@ -250,6 +250,13 @@ export default function DashboardPage() {
           onClose={() => setAnalyticsOpen(false)}
         />
       )}
+
+      {/* Footer */}
+      <footer className="mt-12 text-center pb-4">
+        <p className="text-xs text-white/30 font-mono">
+          Developed by Philip Samuel Rajan A Y &copy; {new Date().getFullYear()}. All rights reserved.
+        </p>
+      </footer>
     </main>
   );
 }
