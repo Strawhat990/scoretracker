@@ -86,27 +86,79 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
           <div className="ledger-rule mb-3" />
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4">
-            {FIELDS.map((f) => (
-              <label key={f.key} className="block">
-                <span className="mb-1 block text-[11px] font-medium text-white/40">
-                  {f.label}
-                  <span className="ml-1 text-white/25">/{f.max}</span>
-                </span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  className="glass-input"
-                  style={cardStyle}
-                  placeholder="—"
-                  value={marks[f.key] ?? ""}
-                  onChange={(e) => onChange(f.key, clampInput(e.target.value, f.max))}
-                  onFocus={(e) => e.target.select()}
-                  min={0}
-                  max={f.max}
-                  step={0.5}
-                />
-              </label>
-            ))}
+            {FIELDS.map((f) => {
+              if (f.key === "class_participation" && subject.code === "MBA134") {
+                return (
+                  <div key={f.key} className="col-span-2 sm:col-span-4 rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold tracking-wide text-white/50 uppercase">
+                        Class Participation (5 MCQs)
+                      </span>
+                      <span className="font-mono text-[11px] text-white/50">
+                        {marks.class_participation?.toFixed(1) || "0.0"} / 15
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-2">
+                      {[1, 2, 3, 4, 5].map((num) => {
+                        const mcqKey = `mcq${num}` as keyof Marks;
+                        return (
+                          <label key={mcqKey} className="block text-center">
+                            <span className="mb-1 block text-[10px] font-medium text-white/40">
+                              Q{num} <span className="text-white/25">/15</span>
+                            </span>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              className="glass-input text-center px-1"
+                              style={cardStyle}
+                              placeholder="—"
+                              value={marks[mcqKey] ?? ""}
+                              onChange={(e) => {
+                                const val = clampInput(e.target.value, 15);
+                                onChange(mcqKey, val);
+                                
+                                const currentMarks = { ...marks, [mcqKey]: val };
+                                let total = 0;
+                                for (let i = 1; i <= 5; i++) {
+                                  const m = currentMarks[`mcq${i}` as keyof Marks] as number | null;
+                                  if (m) total += m / 5;
+                                }
+                                onChange("class_participation", total);
+                              }}
+                              onFocus={(e) => e.target.select()}
+                              min={0}
+                              max={15}
+                              step={0.5}
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <label key={f.key} className="block">
+                  <span className="mb-1 block text-[11px] font-medium text-white/40">
+                    {f.label}
+                    <span className="ml-1 text-white/25">/{f.max}</span>
+                  </span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    className="glass-input"
+                    style={cardStyle}
+                    placeholder="—"
+                    value={marks[f.key] ?? ""}
+                    onChange={(e) => onChange(f.key, clampInput(e.target.value, f.max))}
+                    onFocus={(e) => e.target.select()}
+                    min={0}
+                    max={f.max}
+                    step={0.5}
+                  />
+                </label>
+              );
+            })}
           </div>
 
           {/* End Exam */}

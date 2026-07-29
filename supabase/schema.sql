@@ -68,6 +68,11 @@ create table if not exists marks (
   cia1 numeric(4,1),              -- out of 15
   cia2 numeric(4,1),              -- out of 25 (mid sem)
   class_participation numeric(4,1), -- out of 15
+  mcq1 numeric(4,1),              -- Optional MCQ inputs for specific subjects
+  mcq2 numeric(4,1),
+  mcq3 numeric(4,1),
+  mcq4 numeric(4,1),
+  mcq5 numeric(4,1),
   cia3 numeric(4,1),              -- out of 15
   end_sem numeric(4,1),           -- out of 50 (raw, scaled to /30 in app)
   updated_at timestamptz not null default now(),
