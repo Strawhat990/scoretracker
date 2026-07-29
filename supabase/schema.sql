@@ -8,7 +8,9 @@
 -- point at the same profile once they've been linked via a sync code.
 create table if not exists profiles (
   id uuid primary key default gen_random_uuid(),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  name text,
+  reg_no text
 );
 
 -- 2. DEVICES

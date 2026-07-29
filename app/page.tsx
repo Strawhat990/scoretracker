@@ -7,6 +7,7 @@ import { Subject, Marks, EMPTY_MARKS } from "@/types";
 import { computeGrade } from "@/lib/grading";
 import SubjectCard from "@/components/SubjectCard";
 import SyncModal from "@/components/SyncModal";
+import ProfileModal from "@/components/ProfileModal";
 
 type MarksMap = Record<string, Partial<Marks>>;
 
@@ -17,18 +18,34 @@ export default function DashboardPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [marks, setMarks] = useState<MarksMap>({});
   const [syncOpen, setSyncOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileRegNo, setProfileRegNo] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 
   const marksRef = useRef<MarksMap>({});
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   async function loadAll(pid: string) {
-    const [{ data: subjectRows }, { data: markRows }] = await Promise.all([
+    const [
+      { data: subjectRows },
+      { data: markRows },
+      { data: profileRow }
+    ] = await Promise.all([
       supabase.from("subjects").select("*").order("sort_order"),
       supabase.from("marks").select("*").eq("profile_id", pid),
+      supabase.from("profiles").select("name, reg_no").eq("id", pid).single(),
     ]);
 
     setSubjects((subjectRows as Subject[]) ?? []);
+
+    if (profileRow) {
+      setProfileName(profileRow.name);
+      setProfileRegNo(profileRow.reg_no);
+      if (!profileRow.name && !profileRow.reg_no) {
+        setProfileModalOpen(true);
+      }
+    }
 
     const map: MarksMap = {};
     (subjectRows as Subject[] | null)?.forEach((s) => {
@@ -112,12 +129,26 @@ export default function DashboardPage() {
           <p className="mb-1 font-mono text-xs uppercase tracking-widest text-white/40">
             Trimester 1
           </p>
-          <h1
-            className="font-serif text-[26px] font-bold leading-tight text-white sm:text-3xl"
-            style={{ textShadow: "0 0 30px rgba(147,197,253,0.25)" }}
-          >
-            Grade Tracker
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1
+              className="font-serif text-[26px] font-bold leading-tight text-white sm:text-3xl"
+              style={{ textShadow: "0 0 30px rgba(147,197,253,0.25)" }}
+            >
+              Grade Tracker
+            </h1>
+            <button
+              onClick={() => setProfileModalOpen(true)}
+              className="mt-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              {profileName || profileRegNo ? (
+                <>
+                  {profileName} {profileRegNo && `(${profileRegNo})`}
+                </>
+              ) : (
+                "+ Add Details"
+              )}
+            </button>
+          </div>
           <p className="mt-1 text-sm text-white/50">
             Average across {subjects.length} subjects:{" "}
             <span className="font-mono font-semibold text-white">{overall.toFixed(1)}</span>
@@ -175,6 +206,20 @@ export default function DashboardPage() {
             // Supabase/localStorage — simplest correct way to pick
             // that up everywhere in the app is a fresh load.
             window.location.reload();
+          }}
+        />
+      )}
+
+      {profileModalOpen && profileId && (
+        <ProfileModal
+          profileId={profileId}
+          defaultName={profileName || ""}
+          defaultRegNo={profileRegNo || ""}
+          onClose={() => setProfileModalOpen(false)}
+          onSaved={(name, regNo) => {
+            setProfileName(name);
+            setProfileRegNo(regNo);
+            setProfileModalOpen(false);
           }}
         />
       )}
