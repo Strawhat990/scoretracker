@@ -21,7 +21,11 @@ interface AnalyticsModalProps {
 }
 
 export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsModalProps) {
-  const { data, strongest, weakest } = useMemo(() => {
+  const { data, strongest, weakest } = useMemo<{
+    data: any[];
+    strongest: Subject | null;
+    weakest: Subject | null;
+  }>(() => {
     let strongestSub: Subject | null = null;
     let weakestSub: Subject | null = null;
     let max = -1;
