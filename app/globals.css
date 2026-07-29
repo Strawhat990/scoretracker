@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply text-white antialiased;
+    background-color: #0a0e1a;
+    background-image: radial-gradient(900px 500px at 8% -8%, rgba(96, 165, 250, 0.14), transparent 60%),
+      radial-gradient(800px 450px at 95% 8%, rgba(192, 132, 252, 0.12), transparent 60%),
+      radial-gradient(700px 500px at 50% 105%, rgba(45, 212, 191, 0.10), transparent 60%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  /* Base frosted-glass surface. Per-card accent/glow come in via the
+     --accent / --glow CSS custom properties set inline per subject. */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .glass-card:hover {
+    border-color: color-mix(in srgb, var(--accent, #93c5fd) 45%, transparent);
+    box-shadow: 0 0 22px 1px var(--glow, rgba(147, 197, 253, 0.35)),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 30px rgba(0, 0, 0, 0.4);
+  }
+  .glass-card.is-open {
+    border-color: color-mix(in srgb, var(--accent, #93c5fd) 55%, transparent);
+    box-shadow: 0 0 32px 3px var(--glow, rgba(147, 197, 253, 0.4)),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 36px rgba(0, 0, 0, 0.45);
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-input {
+    @apply w-full rounded-[10px] px-2 py-2 text-center font-mono text-[15px] font-medium text-white;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .glass-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+  .glass-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent, #93c5fd);
+    box-shadow: 0 0 0 3px var(--glow, rgba(147, 197, 253, 0.25));
+  }
+
+  .ledger-rule {
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.14), transparent);
+    height: 1px;
+  }
+}
