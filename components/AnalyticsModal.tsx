@@ -100,7 +100,7 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
                     }}
                     itemStyle={{ color: "#93C5FD" }}
                     labelStyle={{ color: "rgba(255,255,255,0.7)", marginBottom: "4px" }}
-                    formatter={(value: number) => [`${value}%`, 'Score']}
+                    formatter={(value: any) => [`${value}%`, 'Score']}
                   />
                 </RadarChart>
               </ResponsiveContainer>
