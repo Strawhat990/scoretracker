@@ -37,12 +37,13 @@
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 20px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px rgba(0, 0, 0, 0.35);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
   }
   .glass-card:hover {
     border-color: color-mix(in srgb, var(--accent, #93c5fd) 45%, transparent);
     box-shadow: 0 0 22px 1px var(--glow, rgba(147, 197, 253, 0.35)),
       inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 30px rgba(0, 0, 0, 0.4);
+    transform: scale(1.02) translateY(-2px);
   }
   .glass-card.is-open {
     border-color: color-mix(in srgb, var(--accent, #93c5fd) 55%, transparent);
@@ -76,5 +77,16 @@
   .ledger-rule {
     background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.14), transparent);
     height: 1px;
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite linear;
+  }
+
+  @keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 }

@@ -48,7 +48,7 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
             <span className="font-mono text-xs font-semibold" style={{ color: color.accent }}>
               {subject.code}
             </span>
-            <span className="font-mono text-xs text-white/40">{subject.short_name}</span>
+            <span className="font-mono text-xs text-white/70">{subject.short_name}</span>
           </div>
           <h3 className="truncate font-serif text-[17px] font-semibold leading-tight text-white">
             {subject.full_name}
@@ -58,10 +58,10 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
         <div className="flex shrink-0 flex-col items-end">
           <span className="font-mono text-lg font-semibold text-white">
             {grade.grandTotal.toFixed(1)}
-            <span className="text-sm font-normal text-white/40">/100</span>
+            <span className="text-sm font-normal text-white/70">/100</span>
           </span>
           <svg
-            className={`mt-1 h-4 w-4 text-white/40 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`mt-1 h-4 w-4 text-white/70 transition-transform ${open ? "rotate-180" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -76,10 +76,10 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
         <div className="border-t border-white/[0.07] px-4 pb-5 pt-1 sm:px-5">
           {/* Internals */}
           <div className="mb-1 mt-3 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+            <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
               Internals
             </span>
-            <span className="font-mono text-xs text-white/40">
+            <span className="font-mono text-xs text-white/70">
               {grade.internalTotal.toFixed(1)} / {MAX.internal_total}
             </span>
           </div>
@@ -91,10 +91,10 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
                 return (
                   <div key={f.key} className="col-span-2 sm:col-span-4 rounded-xl border border-white/5 bg-white/[0.02] p-3">
                     <div className="mb-3 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold tracking-wide text-white/50 uppercase">
+                      <span className="text-[11px] font-semibold tracking-wide text-white/80 uppercase">
                         Class Participation (5 MCQs)
                       </span>
-                      <span className="font-mono text-[11px] text-white/50">
+                      <span className="font-mono text-[11px] text-white/80">
                         {marks.class_participation?.toFixed(1) || "0.0"} / 15
                       </span>
                     </div>
@@ -103,8 +103,8 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
                         const mcqKey = `mcq${num}` as keyof Marks;
                         return (
                           <label key={mcqKey} className="block text-center">
-                            <span className="mb-1 block text-[10px] font-medium text-white/40">
-                              Q{num} <span className="text-white/25">/15</span>
+                            <span className="mb-1 block text-[10px] font-medium text-white/70">
+                              Q{num} <span className="text-white/50">/15</span>
                             </span>
                             <input
                               type="number"
@@ -139,9 +139,9 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
               }
               return (
                 <label key={f.key} className="block">
-                  <span className="mb-1 block text-[11px] font-medium text-white/40">
+                  <span className="mb-1 block text-[11px] font-medium text-white/70">
                     {f.label}
-                    <span className="ml-1 text-white/25">/{f.max}</span>
+                    <span className="ml-1 text-white/50">/{f.max}</span>
                   </span>
                   <input
                     type="number"
@@ -163,10 +163,10 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
 
           {/* End Exam */}
           <div className="mb-1 mt-5 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+            <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
               End Exam
             </span>
-            <span className="font-mono text-xs text-white/40">
+            <span className="font-mono text-xs text-white/70">
               {grade.endSemScaled.toFixed(1)} / {MAX.end_sem_scaled}
             </span>
           </div>
@@ -174,8 +174,8 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
 
           <div className="flex items-end gap-3">
             <label className="block flex-1 max-w-[140px]">
-              <span className="mb-1 block text-[11px] font-medium text-white/40">
-                End Sem <span className="text-white/25">/{MAX.end_sem_raw}</span>
+              <span className="mb-1 block text-[11px] font-medium text-white/70">
+                End Sem <span className="text-white/50">/{MAX.end_sem_raw}</span>
               </span>
               <input
                 type="number"
@@ -191,10 +191,10 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
                 step={0.5}
               />
             </label>
-            <div className="pb-2 text-white/25">→</div>
+            <div className="pb-2 text-white/50">→</div>
             <div className="flex-1 max-w-[140px]">
-              <span className="mb-1 block text-[11px] font-medium text-white/40">
-                Scaled <span className="text-white/25">/{MAX.end_sem_scaled}</span>
+              <span className="mb-1 block text-[11px] font-medium text-white/70">
+                Scaled <span className="text-white/50">/{MAX.end_sem_scaled}</span>
               </span>
               <div
                 className="rounded-[10px] border border-dashed px-2 py-2 text-center font-mono text-[15px] font-medium text-white/80"
@@ -208,7 +208,7 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
           {/* Grand total bar */}
           <div className="mt-5">
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
                 Grand Total
               </span>
               <span className="font-mono text-xs font-semibold text-white">

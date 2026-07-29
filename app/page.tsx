@@ -122,8 +122,17 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="font-mono text-sm text-white/40">Loading your marksheet…</p>
+      <div className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-8 sm:px-6">
+        <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="skeleton h-12 w-64 rounded-xl"></div>
+          <div className="skeleton h-10 w-24 rounded-full"></div>
+        </div>
+        <div className="mb-8 skeleton h-32 w-full rounded-2xl"></div>
+        <div className="flex flex-col gap-5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="skeleton h-48 w-full rounded-2xl"></div>
+          ))}
+        </div>
       </div>
     );
   }
