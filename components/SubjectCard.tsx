@@ -60,6 +60,11 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
             {grade.grandTotal.toFixed(1)}
             <span className="text-sm font-normal text-white/70">/100</span>
           </span>
+          {grade.evaluatedMax > 0 && grade.evaluatedMax < MAX.grand_total && (
+            <span className="mt-0.5 text-[10px] font-medium text-white/50">
+              So far: <span className="font-mono text-white/70">{grade.grandTotal.toFixed(1)} / {grade.evaluatedMax}</span> ({((grade.grandTotal / grade.evaluatedMax) * 100).toFixed(1)}%)
+            </span>
+          )}
           <svg
             className={`mt-1 h-4 w-4 text-white/70 transition-transform ${open ? "rotate-180" : ""}`}
             fill="none"
@@ -207,10 +212,17 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
 
           {/* Grand total bar */}
           <div className="mt-5">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
-                Grand Total
-              </span>
+            <div className="mb-2 flex items-end justify-between">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                  Grand Total
+                </span>
+                {grade.evaluatedMax > 0 && grade.evaluatedMax < MAX.grand_total && (
+                  <span className="mt-1 text-[11px] font-medium text-white/50">
+                    Score so far: <span className="font-mono text-white/80">{grade.grandTotal.toFixed(1)} / {grade.evaluatedMax}</span> ({((grade.grandTotal / grade.evaluatedMax) * 100).toFixed(1)}%)
+                  </span>
+                )}
+              </div>
               <span className="font-mono text-xs font-semibold text-white">
                 {grade.grandTotal.toFixed(1)} / {MAX.grand_total}
               </span>

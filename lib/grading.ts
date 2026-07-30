@@ -16,6 +16,7 @@ export interface GradeBreakdown {
   endSemScaled: number; // end_sem input scaled from /50 to /30
   grandTotal: number; // internalTotal + endSemScaled, out of 100
   percentage: number; // grandTotal as a % (0-100)
+  evaluatedMax: number; // sum of maximum possible marks for fields entered
 }
 
 /** Scales an End Sem mark out of 50 to its /30 contribution. */
@@ -31,6 +32,13 @@ export function computeGrade(marks: Partial<Marks>): GradeBreakdown {
   const cp = marks.class_participation ?? 0;
   const cia3 = marks.cia3 ?? 0;
 
+  let evaluatedMax = 0;
+  if (marks.cia1 != null) evaluatedMax += MAX.cia1;
+  if (marks.cia2 != null) evaluatedMax += MAX.cia2;
+  if (marks.class_participation != null) evaluatedMax += MAX.class_participation;
+  if (marks.cia3 != null) evaluatedMax += MAX.cia3;
+  if (marks.end_sem != null) evaluatedMax += MAX.end_sem_scaled;
+
   const internalTotal = cia1 + cia2 + cp + cia3;
   const endSemScaled = scaleEndSem(marks.end_sem ?? null);
   const grandTotal = internalTotal + endSemScaled;
@@ -40,6 +48,7 @@ export function computeGrade(marks: Partial<Marks>): GradeBreakdown {
     endSemScaled,
     grandTotal,
     percentage: (grandTotal / MAX.grand_total) * 100,
+    evaluatedMax,
   };
 }
 
