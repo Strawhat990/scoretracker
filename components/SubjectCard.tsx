@@ -124,11 +124,15 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
                                 
                                 const currentMarks = { ...marks, [mcqKey]: val };
                                 let total = 0;
+                                let anyAnswered = false;
                                 for (let i = 1; i <= 5; i++) {
                                   const m = currentMarks[`mcq${i}` as keyof Marks] as number | null;
-                                  if (m) total += m / 5;
+                                  if (m != null) {
+                                    total += m / 5;
+                                    anyAnswered = true;
+                                  }
                                 }
-                                onChange("class_participation", total);
+                                onChange("class_participation", anyAnswered ? total : null);
                               }}
                               onFocus={(e) => e.target.select()}
                               min={0}

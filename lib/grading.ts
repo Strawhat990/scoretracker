@@ -35,7 +35,20 @@ export function computeGrade(marks: Partial<Marks>): GradeBreakdown {
   let evaluatedMax = 0;
   if (marks.cia1 != null) evaluatedMax += MAX.cia1;
   if (marks.cia2 != null) evaluatedMax += MAX.cia2;
-  if (marks.class_participation != null) evaluatedMax += MAX.class_participation;
+  if (marks.class_participation != null) {
+    const hasMcqs = marks.mcq1 != null || marks.mcq2 != null || marks.mcq3 != null || marks.mcq4 != null || marks.mcq5 != null;
+    if (hasMcqs) {
+      let mcqCount = 0;
+      if (marks.mcq1 != null) mcqCount++;
+      if (marks.mcq2 != null) mcqCount++;
+      if (marks.mcq3 != null) mcqCount++;
+      if (marks.mcq4 != null) mcqCount++;
+      if (marks.mcq5 != null) mcqCount++;
+      evaluatedMax += (mcqCount / 5) * MAX.class_participation;
+    } else {
+      evaluatedMax += MAX.class_participation;
+    }
+  }
   if (marks.cia3 != null) evaluatedMax += MAX.cia3;
   if (marks.end_sem != null) evaluatedMax += MAX.end_sem_scaled;
 
