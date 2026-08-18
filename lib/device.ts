@@ -34,7 +34,18 @@ export async function ensureDevice(): Promise<{
     localStorage.setItem(DEVICE_ID_KEY, deviceId);
   }
 
-  // Check if this device is already registered server-side.
+  // Fast path: both IDs are cached locally — no DB round-trip needed.
+  // Fire the last_seen_at ping in the background so it doesn't block the UI.
+  if (deviceId && profileId) {
+    supabase
+      .from("devices")
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq("device_id", deviceId)
+      .then(() => {}); // fire-and-forget
+    return { deviceId, profileId };
+  }
+
+  // Slow path: profileId not in localStorage — look up the device in the DB.
   const { data: existing } = await supabase
     .from("devices")
     .select("profile_id")
@@ -44,10 +55,12 @@ export async function ensureDevice(): Promise<{
   if (existing) {
     profileId = existing.profile_id;
     localStorage.setItem(PROFILE_ID_KEY, profileId!);
-    await supabase
+    // Also fire last_seen_at async here.
+    supabase
       .from("devices")
       .update({ last_seen_at: new Date().toISOString() })
-      .eq("device_id", deviceId);
+      .eq("device_id", deviceId)
+      .then(() => {}); // fire-and-forget
     return { deviceId, profileId: profileId! };
   }
 
