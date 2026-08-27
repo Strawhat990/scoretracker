@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { Subject, Marks } from "@/types";
@@ -43,7 +43,7 @@ function getRaw(m: Partial<Marks>, key: CompKey): number | null {
   return null;
 }
 
-function fmt(n: number | null, d = 1): string {
+function fmt(n: number | null | undefined, d = 1): string {
   if (n == null) return "—";
   return n % 1 === 0 ? String(n) : n.toFixed(d);
 }
