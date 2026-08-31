@@ -6,7 +6,7 @@ import { scaleEndSem, MAX } from "@/lib/grading";
 import { getSubjectColor } from "@/lib/subjectColors";
 import {
   ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  Radar, Tooltip, BarChart, Bar, XAxis, YAxis, Cell, ReferenceLine,
+  Radar, Tooltip, BarChart, Bar, XAxis, YAxis, Cell, ReferenceLine, LabelList,
 } from "recharts";
 
 interface AnalyticsModalProps {
@@ -60,6 +60,25 @@ const MultiBarTooltip = ({ active, payload, label }: any) => {
         </div>
       ))}
     </div>
+  );
+};
+
+// Renders the stacked total just above the full bar (attached to the topmost Bar)
+const TotalLabel = (props: any) => {
+  const { x, y, width, value } = props;
+  if (value == null || value === 0) return null;
+  return (
+    <text
+      x={x + width / 2}
+      y={y - 4}
+      textAnchor="middle"
+      fill="rgba(255,255,255,0.85)"
+      fontSize={9}
+      fontFamily="monospace"
+      fontWeight={700}
+    >
+      {fmt(value)}
+    </text>
   );
 };
 
@@ -394,7 +413,7 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
               <p className="text-[9px] uppercase tracking-widest text-white/25 font-semibold mb-3">
                 {isOverview ? "Component Breakdown per Subject" : `${isSingle ? singleComp!.label : activeComps.map(c => c.shortLabel).join(" & ")} per Subject`}
               </p>
-              <div className="h-48 w-full">
+              <div className="h-52 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   {isOverview ? (
                     <BarChart data={stackedData} margin={{ top: 4, right: 8, left: -22, bottom: 0 }} barCategoryGap="25%">
@@ -406,7 +425,7 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
                       ))}
                     </BarChart>
                   ) : (
-                    <BarChart data={multiData} margin={{ top: 4, right: 8, left: -22, bottom: 0 }} barCategoryGap={isSingle ? "30%" : "25%"}>
+                    <BarChart data={multiData} margin={{ top: 18, right: 8, left: -22, bottom: 0 }} barCategoryGap={isSingle ? "30%" : "25%"}>
                       <XAxis dataKey="subject" tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
                       <YAxis domain={[0, isSingle ? singleComp!.max : activeComps.reduce((sum, c) => sum + c.max, 0)]} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
                       {isSingle && singleStats && (
@@ -416,11 +435,32 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
                       {isSingle ? (
                         <Bar dataKey={singleComp!.key} name={singleComp!.label} radius={[4, 4, 0, 0]} maxBarSize={40}>
                           {multiData.map(d => <Cell key={d.code} fill={singleComp!.color} fillOpacity={d[singleComp!.key] == null ? 0.15 : 0.75} />)}
+                          <LabelList dataKey={singleComp!.key} position="inside" style={{ fill: "rgba(255,255,255,0.85)", fontSize: 9, fontFamily: "monospace", fontWeight: 700 }} formatter={(v: any) => v != null ? fmt(v) : ""} />
                         </Bar>
-                      ) : activeComps.map((c, idx) => (
-                        <Bar key={c.key} dataKey={c.key} name={c.label} fill={c.color} fillOpacity={0.8} stackId="multi"
-                          radius={idx === activeComps.length - 1 ? [3, 3, 0, 0] : undefined} maxBarSize={36} />
-                      ))}
+                      ) : activeComps.map((c, idx) => {
+                        const isTop = idx === activeComps.length - 1;
+                        const totalKey = "__total__";
+                        return (
+                          <Bar key={c.key} dataKey={c.key} name={c.label} fill={c.color} fillOpacity={0.8} stackId="multi"
+                            radius={isTop ? [3, 3, 0, 0] : undefined} maxBarSize={36}>
+                            {/* score inside each segment */}
+                            <LabelList dataKey={c.key} position="inside"
+                              style={{ fill: c.color, fontSize: 9, fontFamily: "monospace", fontWeight: 700, filter: "brightness(1.8)" }}
+                              formatter={(v: any) => v != null ? fmt(v) : ""} />
+                            {/* total above the full stacked bar — only on topmost segment */}
+                            {isTop && (
+                              <LabelList
+                                dataKey={c.key}
+                                content={(props: any) => {
+                                  const d = multiData[props.index];
+                                  const total = activeComps.reduce((sum, comp) => sum + (d?.[comp.key] ?? 0), 0);
+                                  return <TotalLabel {...props} value={total} />;
+                                }}
+                              />
+                            )}
+                          </Bar>
+                        );
+                      })}
                     </BarChart>
                   )}
                 </ResponsiveContainer>
