@@ -406,9 +406,9 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
                       ))}
                     </BarChart>
                   ) : (
-                    <BarChart data={multiData} margin={{ top: 4, right: 8, left: -22, bottom: 0 }} barCategoryGap={isSingle ? "30%" : "20%"} barGap={2}>
+                    <BarChart data={multiData} margin={{ top: 4, right: 8, left: -22, bottom: 0 }} barCategoryGap={isSingle ? "30%" : "25%"}>
                       <XAxis dataKey="subject" tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                      <YAxis domain={[0, isSingle ? singleComp!.max : Math.max(...activeComps.map(c => c.max))]} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
+                      <YAxis domain={[0, isSingle ? singleComp!.max : activeComps.reduce((sum, c) => sum + c.max, 0)]} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
                       {isSingle && singleStats && (
                         <ReferenceLine y={singleStats.avg} stroke={singleComp!.color} strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: `avg ${fmt(singleStats.avg)}`, position: "insideTopRight", fill: singleComp!.color, fontSize: 9, fontFamily: "monospace" }} />
                       )}
@@ -417,8 +417,9 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
                         <Bar dataKey={singleComp!.key} name={singleComp!.label} radius={[4, 4, 0, 0]} maxBarSize={40}>
                           {multiData.map(d => <Cell key={d.code} fill={singleComp!.color} fillOpacity={d[singleComp!.key] == null ? 0.15 : 0.75} />)}
                         </Bar>
-                      ) : activeComps.map(c => (
-                        <Bar key={c.key} dataKey={c.key} name={c.label} fill={c.color} fillOpacity={0.75} radius={[3, 3, 0, 0]} maxBarSize={22} />
+                      ) : activeComps.map((c, idx) => (
+                        <Bar key={c.key} dataKey={c.key} name={c.label} fill={c.color} fillOpacity={0.8} stackId="multi"
+                          radius={idx === activeComps.length - 1 ? [3, 3, 0, 0] : undefined} maxBarSize={36} />
                       ))}
                     </BarChart>
                   )}
