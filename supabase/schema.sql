@@ -40,24 +40,38 @@ create table if not exists sync_codes (
 create index if not exists sync_codes_profile_id_idx on sync_codes(profile_id);
 
 -- 4. SUBJECTS
--- Seeded once with the 6 Trimester-1 subjects. Kept in its own table
--- (rather than hardcoded) so codes/names can be edited without a
--- frontend redeploy, and so future trimesters can be added.
+-- Subjects table holds all trimesters. `trimester` column distinguishes them
+-- so a single query can fetch subjects per trimester without separate tables.
 create table if not exists subjects (
   code text primary key,           -- e.g. 'MBA131'
   short_name text not null,        -- e.g. 'A/C'
   full_name text not null,         -- e.g. 'Financial Accounting for Managers'
-  sort_order int not null default 0
+  sort_order int not null default 0,
+  trimester int not null default 1 -- 1 = Trimester 1, 2 = Trimester 2, etc.
 );
 
-insert into subjects (code, short_name, full_name, sort_order) values
-  ('MBA131', 'A/C',  'Financial Accounting for Managers',        1),
-  ('MBA132', 'ME',   'Managerial Economics',                     2),
-  ('MBA133', 'MM',   'Marketing Management',                     3),
-  ('MBA134', 'SFB',  'Statistics for Business',                  4),
-  ('MBA135', 'OB',   'Organizational Behaviour',                 5),
-  ('MBA136', 'MDBS', 'Management of Digital Business Systems',   6)
-on conflict (code) do nothing;
+-- Add trimester column if upgrading an existing DB (idempotent)
+alter table subjects add column if not exists trimester int not null default 1;
+
+-- Trimester 1 subjects
+insert into subjects (code, short_name, full_name, sort_order, trimester) values
+  ('MBA131', 'A/C',  'Financial Accounting for Managers',        1, 1),
+  ('MBA132', 'ME',   'Managerial Economics',                     2, 1),
+  ('MBA133', 'MM',   'Marketing Management',                     3, 1),
+  ('MBA134', 'SFB',  'Statistics for Business',                  4, 1),
+  ('MBA135', 'OB',   'Organizational Behaviour',                 5, 1),
+  ('MBA136', 'MDBS', 'Management of Digital Business Systems',   6, 1)
+on conflict (code) do update set trimester = excluded.trimester;
+
+-- Trimester 2 subjects
+insert into subjects (code, short_name, full_name, sort_order, trimester) values
+  ('MBA231', 'AMM',   'Advanced Marketing Management',                  1, 2),
+  ('MBA232', 'MHR',   'Management of Human Resources',                  2, 2),
+  ('MBA234', 'FM',    'Financial Management',                            3, 2),
+  ('MBA235', 'OM',    'Operations Management',                           4, 2),
+  ('MBA236', 'BA&AI', 'Business Analytics and Artificial Intelligence',  5, 2),
+  ('MBA238', 'MS',    'Management Science',                              6, 2)
+on conflict (code) do update set trimester = excluded.trimester;
 
 -- 5. MARKS
 -- One row per (profile, subject). Raw inputs are stored; totals are
@@ -99,6 +113,13 @@ alter table sync_codes enable row level security;
 alter table subjects enable row level security;
 alter table marks enable row level security;
 
+-- Drop policies before recreating (CREATE POLICY has no IF NOT EXISTS)
+drop policy if exists "anon full access - profiles" on profiles;
+drop policy if exists "anon full access - devices" on devices;
+drop policy if exists "anon full access - sync_codes" on sync_codes;
+drop policy if exists "anon read - subjects" on subjects;
+drop policy if exists "anon full access - marks" on marks;
+
 create policy "anon full access - profiles" on profiles
   for all using (true) with check (true);
 
@@ -120,6 +141,7 @@ create policy "anon full access - marks" on marks
 -- Returns the profile_id the device is now linked to, or null if
 -- the code is invalid/expired/used.
 -- ============================================================
+drop function if exists redeem_sync_code(text, uuid);
 create or replace function redeem_sync_code(p_code text, p_device_id uuid)
 returns uuid
 language plpgsql
@@ -152,6 +174,7 @@ $$;
 -- Helper function: generate a fresh, unused 6-digit code for a
 -- profile. Called via supabase.rpc('create_sync_code', { p_profile_id })
 -- ============================================================
+drop function if exists create_sync_code(uuid);
 create or replace function create_sync_code(p_profile_id uuid)
 returns text
 language plpgsql

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
+const TRIMESTER_KEY = "mba-tracker:trimester";
 import { ensureDevice } from "@/lib/device";
 import { Subject, Marks, EMPTY_MARKS } from "@/types";
 import { computeGrade } from "@/lib/grading";
@@ -16,7 +18,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [allSubjects, setAllSubjects] = useState<Subject[]>([]);
   const [marks, setMarks] = useState<MarksMap>({});
   const [syncOpen, setSyncOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -24,6 +26,20 @@ export default function DashboardPage() {
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profileRegNo, setProfileRegNo] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [trimester, setTrimester] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(TRIMESTER_KEY);
+      return saved ? Number(saved) : 1;
+    }
+    return 1;
+  });
+  const [trimesterOpen, setTrimesterOpen] = useState(false);
+
+  // Subjects filtered by selected trimester
+  const subjects = useMemo(
+    () => allSubjects.filter((s) => s.trimester === trimester),
+    [allSubjects, trimester]
+  );
 
   const marksRef = useRef<MarksMap>({});
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -39,7 +55,7 @@ export default function DashboardPage() {
       supabase.from("profiles").select("name, reg_no").eq("id", pid).single(),
     ]);
 
-    setSubjects((subjectRows as Subject[]) ?? []);
+    setAllSubjects((subjectRows as Subject[]) ?? []);
 
     if (profileRow) {
       setProfileName(profileRow.name);
@@ -58,6 +74,13 @@ export default function DashboardPage() {
     });
     setMarks(map);
     marksRef.current = map;
+  }
+
+  function switchTrimester(t: number) {
+    setTrimester(t);
+    localStorage.setItem(TRIMESTER_KEY, String(t));
+    setTrimesterOpen(false);
+    setAnalyticsOpen(false);
   }
 
   useEffect(() => {
@@ -113,6 +136,12 @@ export default function DashboardPage() {
     }, 600);
   }
 
+  // Trimester labels available (derive from loaded subjects)
+  const availableTrimesters = useMemo(
+    () => [...new Set(allSubjects.map((s) => s.trimester))].sort(),
+    [allSubjects]
+  );
+
   const overall = useMemo(() => {
     const totals = subjects.map((s) => computeGrade(marks[s.code] ?? {}));
     if (totals.length === 0) return 0;
@@ -143,7 +172,7 @@ export default function DashboardPage() {
       <header className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="mb-1 font-mono text-xs uppercase tracking-widest text-white/40">
-            Trimester 1
+            MBA · Trimester {trimester}
           </p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h1
@@ -152,6 +181,40 @@ export default function DashboardPage() {
             >
               Grade Tracker
             </h1>
+            {/* Trimester switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setTrimesterOpen((v) => !v)}
+                className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wide text-white/80 transition-all hover:bg-white/10 hover:text-white"
+              >
+                T{trimester}
+                <svg className={`h-3 w-3 transition-transform ${trimesterOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {trimesterOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setTrimesterOpen(false)} />
+                  <div className="absolute left-0 top-full z-40 mt-1.5 min-w-[140px] overflow-hidden rounded-xl border border-white/10 bg-[#0d1526]/95 shadow-2xl backdrop-blur-xl">
+                    {(availableTrimesters.length > 0 ? availableTrimesters : [1, 2]).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => switchTrimester(t)}
+                        className={`flex w-full items-center gap-2 px-3 py-2.5 text-left font-mono text-[12px] transition-colors ${
+                          t === trimester
+                            ? "bg-white/10 text-white font-bold"
+                            : "text-white/55 hover:bg-white/5 hover:text-white/90"
+                        }`}
+                      >
+                        <span className="w-5 h-5 flex items-center justify-center rounded-full border border-white/20 text-[9px] font-bold" style={t === trimester ? { background: "#93C5FD", borderColor: "#93C5FD", color: "#0a0e1a" } : {}}>{t}</span>
+                        Trimester {t}
+                        {t === trimester && <span className="ml-auto text-[9px] text-white/40">active</span>}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             <button
               onClick={() => setProfileModalOpen(true)}
               className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-white/60 transition-colors hover:bg-white/10 hover:text-white"

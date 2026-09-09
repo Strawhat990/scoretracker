@@ -3,7 +3,9 @@ export interface Subject {
   short_name: string;
   full_name: string;
   sort_order: number;
+  trimester: number;
 }
+
 
 export interface Marks {
   profile_id: string;
