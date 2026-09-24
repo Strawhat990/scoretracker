@@ -94,6 +94,17 @@ create table if not exists marks (
   primary key (profile_id, subject_code)
 );
 
+-- 6. EXTRA MARKS
+-- Non-subject marks (e.g. Mentoring, AIM) that don't follow the
+-- standard CIA/End-Sem structure. Just a single marks value per type.
+create table if not exists extra_marks (
+  profile_id uuid not null references profiles(id) on delete cascade,
+  type text not null,                 -- e.g. 'mentoring', 'aim'
+  marks numeric(5,1),                 -- final marks
+  updated_at timestamptz not null default now(),
+  primary key (profile_id, type)
+);
+
 -- ============================================================
 -- Row Level Security
 -- This app has no real user auth, so access is gated entirely by
@@ -112,6 +123,7 @@ alter table devices enable row level security;
 alter table sync_codes enable row level security;
 alter table subjects enable row level security;
 alter table marks enable row level security;
+alter table extra_marks enable row level security;
 
 -- Drop policies before recreating (CREATE POLICY has no IF NOT EXISTS)
 drop policy if exists "anon full access - profiles" on profiles;
@@ -119,6 +131,7 @@ drop policy if exists "anon full access - devices" on devices;
 drop policy if exists "anon full access - sync_codes" on sync_codes;
 drop policy if exists "anon read - subjects" on subjects;
 drop policy if exists "anon full access - marks" on marks;
+drop policy if exists "anon full access - extra_marks" on extra_marks;
 
 create policy "anon full access - profiles" on profiles
   for all using (true) with check (true);
@@ -133,6 +146,9 @@ create policy "anon read - subjects" on subjects
   for select using (true);
 
 create policy "anon full access - marks" on marks
+  for all using (true) with check (true);
+
+create policy "anon full access - extra_marks" on extra_marks
   for all using (true) with check (true);
 
 -- ============================================================

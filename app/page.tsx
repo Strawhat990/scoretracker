@@ -8,9 +8,18 @@ import { ensureDevice } from "@/lib/device";
 import { Subject, Marks, EMPTY_MARKS } from "@/types";
 import { computeGrade } from "@/lib/grading";
 import SubjectCard from "@/components/SubjectCard";
+import ExtraMarkCard from "@/components/ExtraMarkCard";
 import SyncModal from "@/components/SyncModal";
 import ProfileModal from "@/components/ProfileModal";
 import AnalyticsModal from "@/components/AnalyticsModal";
+
+/** Extra marks items — these don't participate in analytics. */
+const EXTRA_ITEMS = [
+  { key: "mentoring", label: "Mentoring", shortLabel: "MEN", max: 50, accent: "#E879F9", glow: "rgba(232,121,249,0.45)" },
+  { key: "aim", label: "Applied Immersion in Management (AIM)", shortLabel: "AIM", max: 100, accent: "#38BDF8", glow: "rgba(56,189,248,0.45)" },
+] as const;
+
+type ExtraMarksMap = Record<string, number | null>;
 
 type MarksMap = Record<string, Partial<Marks>>;
 
@@ -20,6 +29,7 @@ export default function DashboardPage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [allSubjects, setAllSubjects] = useState<Subject[]>([]);
   const [marks, setMarks] = useState<MarksMap>({});
+  const [extraMarks, setExtraMarks] = useState<ExtraMarksMap>({ mentoring: null, aim: null });
   const [syncOpen, setSyncOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
@@ -48,11 +58,13 @@ export default function DashboardPage() {
     const [
       { data: subjectRows },
       { data: markRows },
-      { data: profileRow }
+      { data: profileRow },
+      { data: extraRows },
     ] = await Promise.all([
       supabase.from("subjects").select("*").order("sort_order"),
       supabase.from("marks").select("*").eq("profile_id", pid),
       supabase.from("profiles").select("name, reg_no").eq("id", pid).single(),
+      supabase.from("extra_marks").select("*").eq("profile_id", pid),
     ]);
 
     setAllSubjects((subjectRows as Subject[]) ?? []);
@@ -74,6 +86,13 @@ export default function DashboardPage() {
     });
     setMarks(map);
     marksRef.current = map;
+
+    // Extra marks (mentoring, aim)
+    const em: ExtraMarksMap = { mentoring: null, aim: null };
+    (extraRows as any[] | null)?.forEach((r) => {
+      em[r.type] = r.marks;
+    });
+    setExtraMarks(em);
   }
 
   function switchTrimester(t: number) {
@@ -274,6 +293,44 @@ export default function DashboardPage() {
             marks={marks[s.code] ?? {}}
             onChange={(field, value) => handleChange(s.code, field, value)}
             defaultOpen={i === 0}
+          />
+        ))}
+      </div>
+
+      {/* ── Dotted separator ── */}
+      <div
+        className="my-5"
+        style={{
+          borderBottom: "2px dashed rgba(255,255,255,0.12)",
+        }}
+      />
+
+      {/* ── Extra marks (Mentoring & AIM) — not in analytics ── */}
+      <div className="space-y-3">
+        {EXTRA_ITEMS.map((item) => (
+          <ExtraMarkCard
+            key={item.key}
+            label={item.label}
+            shortLabel={item.shortLabel}
+            maxMarks={item.max}
+            value={extraMarks[item.key]}
+            accent={item.accent}
+            glow={item.glow}
+            onChange={(val) => {
+              setExtraMarks((prev) => ({ ...prev, [item.key]: val }));
+              if (!profileId) return;
+              setSaveState("saving");
+              clearTimeout(saveTimers.current[`extra_${item.key}`]);
+              saveTimers.current[`extra_${item.key}`] = setTimeout(async () => {
+                await supabase.from("extra_marks").upsert({
+                  profile_id: profileId,
+                  type: item.key,
+                  marks: val,
+                  updated_at: new Date().toISOString(),
+                });
+                setSaveState("saved");
+              }, 600);
+            }}
           />
         ))}
       </div>
