@@ -297,43 +297,46 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ── Dotted separator ── */}
-      <div
-        className="my-5"
-        style={{
-          borderBottom: "2px dashed rgba(255,255,255,0.12)",
-        }}
-      />
-
-      {/* ── Extra marks (Mentoring & AIM) — not in analytics ── */}
-      <div className="space-y-3">
-        {EXTRA_ITEMS.map((item) => (
-          <ExtraMarkCard
-            key={item.key}
-            label={item.label}
-            shortLabel={item.shortLabel}
-            maxMarks={item.max}
-            value={extraMarks[item.key]}
-            accent={item.accent}
-            glow={item.glow}
-            onChange={(val) => {
-              setExtraMarks((prev) => ({ ...prev, [item.key]: val }));
-              if (!profileId) return;
-              setSaveState("saving");
-              clearTimeout(saveTimers.current[`extra_${item.key}`]);
-              saveTimers.current[`extra_${item.key}`] = setTimeout(async () => {
-                await supabase.from("extra_marks").upsert({
-                  profile_id: profileId,
-                  type: item.key,
-                  marks: val,
-                  updated_at: new Date().toISOString(),
-                });
-                setSaveState("saved");
-              }, 600);
+      {/* ── Extra marks (Mentoring & AIM) — Trimester 1 only, not in analytics ── */}
+      {trimester === 1 && (
+        <>
+          <div
+            className="my-5"
+            style={{
+              borderBottom: "2px dashed rgba(255,255,255,0.12)",
             }}
           />
-        ))}
-      </div>
+
+          <div className="space-y-3">
+            {EXTRA_ITEMS.map((item) => (
+              <ExtraMarkCard
+                key={item.key}
+                label={item.label}
+                shortLabel={item.shortLabel}
+                maxMarks={item.max}
+                value={extraMarks[item.key]}
+                accent={item.accent}
+                glow={item.glow}
+                onChange={(val) => {
+                  setExtraMarks((prev) => ({ ...prev, [item.key]: val }));
+                  if (!profileId) return;
+                  setSaveState("saving");
+                  clearTimeout(saveTimers.current[`extra_${item.key}`]);
+                  saveTimers.current[`extra_${item.key}`] = setTimeout(async () => {
+                    await supabase.from("extra_marks").upsert({
+                      profile_id: profileId,
+                      type: item.key,
+                      marks: val,
+                      updated_at: new Date().toISOString(),
+                    });
+                    setSaveState("saved");
+                  }, 600);
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Save status, unobtrusive */}
       <div className="mt-6 text-center">
