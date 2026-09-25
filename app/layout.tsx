@@ -23,8 +23,8 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "Trimester 1 — Grade Tracker",
-  description: "MBA Trimester-1 grade tracking dashboard",
+  title: "Score Tracker",
+  description: "MBA score tracking dashboard",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
