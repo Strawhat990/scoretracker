@@ -184,7 +184,7 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
           <div className="flex items-end gap-3">
             <label className="block flex-1 max-w-[140px]">
               <span className="mb-1 block text-[11px] font-medium text-white/70">
-                End Sem <span className="text-white/50">/{MAX.end_sem_raw}</span>
+                End Sem <span className="text-white/50">/{MAX.end_sem_scaled}</span>
               </span>
               <input
                 type="number"
@@ -193,25 +193,13 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
                 style={cardStyle}
                 placeholder="—"
                 value={marks.end_sem ?? ""}
-                onChange={(e) => onChange("end_sem", clampInput(e.target.value, MAX.end_sem_raw))}
+                onChange={(e) => onChange("end_sem", clampInput(e.target.value, MAX.end_sem_scaled))}
                 onFocus={(e) => e.target.select()}
                 min={0}
-                max={MAX.end_sem_raw}
+                max={MAX.end_sem_scaled}
                 step={0.5}
               />
             </label>
-            <div className="pb-2 text-white/50">→</div>
-            <div className="flex-1 max-w-[140px]">
-              <span className="mb-1 block text-[11px] font-medium text-white/70">
-                Scaled <span className="text-white/50">/{MAX.end_sem_scaled}</span>
-              </span>
-              <div
-                className="rounded-[10px] border border-dashed px-2 py-2 text-center font-mono text-[15px] font-medium text-white/80"
-                style={{ borderColor: "rgba(255,255,255,0.15)", background: color.soft }}
-              >
-                {grade.endSemScaled.toFixed(1)}
-              </div>
-            </div>
           </div>
 
           {/* Grand total bar */}

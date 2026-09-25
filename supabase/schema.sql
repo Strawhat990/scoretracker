@@ -89,7 +89,7 @@ create table if not exists marks (
   mcq4 numeric(4,1),
   mcq5 numeric(4,1),
   cia3 numeric(4,1),              -- out of 15
-  end_sem numeric(4,1),           -- out of 50 (raw, scaled to /30 in app)
+  end_sem numeric(4,1),           -- out of 30 (entered directly)
   updated_at timestamptz not null default now(),
   primary key (profile_id, subject_code)
 );
