@@ -324,7 +324,7 @@ export default function DashboardPage() {
             subject={s}
             marks={marks[s.code] ?? {}}
             onChange={(field, value) => handleChange(s.code, field, value)}
-            defaultOpen={i === 0}
+            defaultOpen={false}
           />
         ))}
       </div>
