@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: "Score Tracker",
   description: "MBA score tracking dashboard",
+  openGraph: {
+    title: "Score Tracker",
+    description: "MBA score tracking dashboard",
+    siteName: "Score Tracker",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
