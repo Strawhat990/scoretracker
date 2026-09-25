@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+/* Fonts loaded via next/font in layout.tsx — no @import needed */
 
 @tailwind base;
 @tailwind components;
@@ -38,6 +38,7 @@
     border-radius: 20px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px rgba(0, 0, 0, 0.35);
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    will-change: transform, box-shadow;
   }
   .glass-card:hover {
     border-color: color-mix(in srgb, var(--accent, #93c5fd) 45%, transparent);

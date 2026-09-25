@@ -8,9 +8,9 @@ const config: Config = {
         base: "#0A0E1A",
       },
       fontFamily: {
-        serif: ["'Source Serif 4'", "Georgia", "serif"],
-        sans: ["'Inter'", "system-ui", "sans-serif"],
-        mono: ["'IBM Plex Mono'", "ui-monospace", "monospace"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       borderRadius: {
         card: "20px",

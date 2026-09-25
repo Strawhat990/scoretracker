@@ -1,17 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 const TRIMESTER_KEY = "mba-tracker:trimester";
+const SUBJECTS_CACHE_KEY = "mba-tracker:subjects-cache";
+const SUBJECTS_CACHE_TTL = 86400000; // 24h
 import { ensureDevice } from "@/lib/device";
 import { Subject, Marks, EMPTY_MARKS } from "@/types";
 import { computeGrade } from "@/lib/grading";
 import SubjectCard from "@/components/SubjectCard";
 import ExtraMarkCard from "@/components/ExtraMarkCard";
-import SyncModal from "@/components/SyncModal";
-import ProfileModal from "@/components/ProfileModal";
-import AnalyticsModal from "@/components/AnalyticsModal";
+
+const SyncModal = dynamic(() => import("@/components/SyncModal"), { ssr: false });
+const ProfileModal = dynamic(() => import("@/components/ProfileModal"), { ssr: false });
+const AnalyticsModal = dynamic(() => import("@/components/AnalyticsModal"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <span className="text-sm text-white/50">Loading analytics…</span>
+    </div>
+  ),
+});
 
 /** Extra marks items — these don't participate in analytics. */
 const EXTRA_ITEMS = [
@@ -55,6 +66,19 @@ export default function DashboardPage() {
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   async function loadAll(pid: string) {
+    // Show cached subjects instantly if available (subjects are static config)
+    let cachedSubjects: Subject[] | null = null;
+    try {
+      const raw = localStorage.getItem(SUBJECTS_CACHE_KEY);
+      if (raw) {
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts < SUBJECTS_CACHE_TTL && Array.isArray(data)) {
+          cachedSubjects = data;
+          setAllSubjects(data);
+        }
+      }
+    } catch { /* ignore corrupt cache */ }
+
     const [
       { data: subjectRows },
       { data: markRows },
@@ -67,7 +91,15 @@ export default function DashboardPage() {
       supabase.from("extra_marks").select("*").eq("profile_id", pid),
     ]);
 
-    setAllSubjects((subjectRows as Subject[]) ?? []);
+    const freshSubjects = (subjectRows as Subject[]) ?? cachedSubjects ?? [];
+    setAllSubjects(freshSubjects);
+
+    // Update cache
+    if (subjectRows) {
+      try {
+        localStorage.setItem(SUBJECTS_CACHE_KEY, JSON.stringify({ data: subjectRows, ts: Date.now() }));
+      } catch { /* storage full — ignore */ }
+    }
 
     if (profileRow) {
       setProfileName(profileRow.name);
@@ -78,7 +110,7 @@ export default function DashboardPage() {
     }
 
     const map: MarksMap = {};
-    (subjectRows as Subject[] | null)?.forEach((s) => {
+    freshSubjects.forEach((s) => {
       map[s.code] = { ...EMPTY_MARKS };
     });
     (markRows as Marks[] | null)?.forEach((m) => {
@@ -152,7 +184,7 @@ export default function DashboardPage() {
         updated_at: new Date().toISOString(),
       });
       setSaveState("saved");
-    }, 600);
+    }, 400);
   }
 
   // Trimester labels available (derive from loaded subjects)
@@ -330,7 +362,7 @@ export default function DashboardPage() {
                       updated_at: new Date().toISOString(),
                     });
                     setSaveState("saved");
-                  }, 600);
+                  }, 400);
                 }}
               />
             ))}

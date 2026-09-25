@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, CSSProperties } from "react";
+import { memo, useState, CSSProperties } from "react";
 import { Subject, Marks } from "@/types";
 import { MAX, clampInput, computeGrade } from "@/lib/grading";
 import { getSubjectColor } from "@/lib/subjectColors";
@@ -24,7 +24,7 @@ const FIELDS: {
   { key: "cia3", label: "CIA 3", max: MAX.cia3 },
 ];
 
-export default function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps) {
+function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps) {
   const [open, setOpen] = useState(!!defaultOpen);
   const grade = computeGrade(marks);
   const color = getSubjectColor(subject.code);
@@ -235,3 +235,5 @@ export default function SubjectCard({ subject, marks, onChange, defaultOpen }: S
     </div>
   );
 }
+
+export default memo(SubjectCard);
