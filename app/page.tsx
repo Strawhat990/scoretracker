@@ -220,7 +220,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-8 sm:px-6">
+    <main className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-5 sm:px-6">
+      {/* Top credit */}
+      <div className="mb-6 text-center">
+        <p className="text-[11px] text-white/30 font-mono tracking-wide">
+          Developed by Philip Samuel Rajan A Y, 1MBA J &copy; {new Date().getFullYear()}. All rights reserved.
+        </p>
+      </div>
+
       {/* Header */}
       <header className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
