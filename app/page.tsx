@@ -65,7 +65,7 @@ export default function DashboardPage() {
   const marksRef = useRef<MarksMap>({});
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  async function loadAll(pid: string) {
+  async function loadAll(pid: string, prefetchedSubjects?: PromiseLike<{ data: any }>) {
     // Show cached subjects instantly if available (subjects are static config)
     let cachedSubjects: Subject[] | null = null;
     try {
@@ -85,7 +85,7 @@ export default function DashboardPage() {
       { data: profileRow },
       { data: extraRows },
     ] = await Promise.all([
-      supabase.from("subjects").select("*").order("sort_order"),
+      prefetchedSubjects ?? supabase.from("subjects").select("*").order("sort_order"),
       supabase.from("marks").select("*").eq("profile_id", pid),
       supabase.from("profiles").select("name, reg_no").eq("id", pid).single(),
       supabase.from("extra_marks").select("*").eq("profile_id", pid),
@@ -137,10 +137,12 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       try {
+        // Start subjects fetch immediately — it's profile-independent
+        const subjectsPromise = supabase.from("subjects").select("*").order("sort_order");
         const { deviceId, profileId } = await ensureDevice();
         setDeviceId(deviceId);
         setProfileId(profileId);
-        await loadAll(profileId);
+        await loadAll(profileId, subjectsPromise);
       } catch (err) {
         console.error(err);
       } finally {
@@ -328,6 +330,17 @@ export default function DashboardPage() {
           />
         ))}
       </div>
+
+      {/* Empty state when trimester has no subjects */}
+      {subjects.length === 0 && !loading && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 py-16 text-center">
+          <p className="font-mono text-4xl text-white/10">📋</p>
+          <p className="mt-3 font-serif text-lg font-semibold text-white/60">No subjects yet</p>
+          <p className="mt-1 text-sm text-white/35">
+            Trimester {trimester} subjects haven&apos;t been added to the database yet.
+          </p>
+        </div>
+      )}
 
       {/* ── Extra marks (Mentoring & AIM) — Trimester 1 only, not in analytics ── */}
       {trimester === 1 && (

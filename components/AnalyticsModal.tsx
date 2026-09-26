@@ -272,7 +272,7 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
                   <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-white/30 font-mono">{singleStats.notEntered} not entered</span>
                 )}
               </div>
-              <div className="rounded-xl border border-white/[0.07] overflow-hidden">
+              <div className="rounded-xl border border-white/[0.07] overflow-hidden overflow-x-auto">
                 <table className="w-full text-xs font-mono">
                   <thead>
                     <tr className="border-b border-white/[0.07]">

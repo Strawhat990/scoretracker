@@ -23,12 +23,14 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "Score Tracker",
-  description: "MBA score tracking dashboard",
+  title: "MBA Grade Tracker — CIA, End Sem & Analytics",
+  description:
+    "Track your MBA marks across CIAs, class participation, and end semester exams. Live grade calculation, subject-wise analytics, and cross-device sync.",
   openGraph: {
-    title: "Score Tracker",
-    description: "MBA score tracking dashboard",
-    siteName: "Score Tracker",
+    title: "MBA Grade Tracker — CIA, End Sem & Analytics",
+    description:
+      "Track your MBA marks across CIAs, class participation, and end semester exams. Live grade calculation, subject-wise analytics, and cross-device sync.",
+    siteName: "MBA Grade Tracker",
   },
 };
 
