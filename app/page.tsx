@@ -220,12 +220,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-5 sm:px-6">
-      {/* Top credit */}
-      <div className="mb-6 text-center">
-        <p className="text-[11px] text-white/30 font-mono tracking-wide">
-          Developed by Philip Samuel Rajan A Y, 1MBA J &copy; {new Date().getFullYear()}. All rights reserved.
-        </p>
+    <main className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-6 sm:px-6">
+      {/* Top Author Badge */}
+      <div className="mb-7 flex justify-center">
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-4 py-1.5 shadow-lg backdrop-blur-md transition-all hover:border-white/25 hover:bg-white/[0.08]">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-white/50">Developed by</span>
+          <span className="font-mono text-xs font-bold text-white tracking-tight">Philip Samuel Rajan A Y</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-sky-300">1MBA J</span>
+          <span className="text-[10px] text-white/40">&copy; {new Date().getFullYear()}</span>
+        </div>
       </div>
 
       {/* Header */}
