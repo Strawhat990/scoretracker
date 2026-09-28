@@ -92,7 +92,7 @@ function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4">
             {FIELDS.map((f) => {
-              if (f.key === "class_participation" && subject.code === "MBA134") {
+              if (f.key === "class_participation" && (subject.code === "MBA134" || subject.code === "MBA236")) {
                 return (
                   <div key={f.key} className="col-span-2 sm:col-span-4 rounded-xl border border-white/5 bg-white/[0.02] p-3">
                     <div className="mb-3 flex items-center justify-between">
