@@ -248,13 +248,28 @@ export default function DashboardPage() {
             >
               Grade Tracker
             </h1>
+            <button
+              onClick={() => setProfileModalOpen(true)}
+              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              {profileName || profileRegNo ? (
+                <>
+                  {profileName} {profileRegNo && `(${profileRegNo})`}
+                </>
+              ) : (
+                "+ Add Details"
+              )}
+            </button>
+          </div>
+          
+          <div className="mt-3 flex items-center">
             {/* Trimester switcher */}
             <div className="relative">
               <button
                 onClick={() => setTrimesterOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wide text-white/80 transition-all hover:bg-white/10 hover:text-white"
+                className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-white/80 transition-all hover:bg-white/10 hover:text-white"
               >
-                T{trimester}
+                Trimester {trimester}
                 <svg className={`h-3 w-3 transition-transform ${trimesterOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -282,20 +297,9 @@ export default function DashboardPage() {
                 </>
               )}
             </div>
-            <button
-              onClick={() => setProfileModalOpen(true)}
-              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-white/60 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              {profileName || profileRegNo ? (
-                <>
-                  {profileName} {profileRegNo && `(${profileRegNo})`}
-                </>
-              ) : (
-                "+ Add Details"
-              )}
-            </button>
           </div>
-          <p className="mt-2 text-sm text-white/50">
+
+          <p className="mt-3 text-sm text-white/50">
             Average across {subjects.length} subjects:{" "}
             <span className="font-mono font-semibold text-white">{overall.toFixed(1)}</span>
             <span className="text-white/40">/100</span>
