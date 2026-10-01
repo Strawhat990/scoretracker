@@ -26,7 +26,7 @@ const FIELDS: {
 
 function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps) {
   const [open, setOpen] = useState(!!defaultOpen);
-  const grade = computeGrade(marks);
+  const grade = computeGrade(marks, subject.code);
   const color = getSubjectColor(subject.code);
 
   const cardStyle = {
@@ -146,11 +146,14 @@ function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps
                   </div>
                 );
               }
+              const isMBA235CIA1 = subject.code === "MBA235" && f.key === "cia1";
+              const currentMax = isMBA235CIA1 ? 25 : f.max;
+
               return (
                 <label key={f.key} className="block">
                   <span className="mb-1 block text-[11px] font-medium text-white/70">
                     {f.label}
-                    <span className="ml-1 text-white/50">/{f.max}</span>
+                    <span className="ml-1 text-white/50">/{currentMax}</span>
                   </span>
                   <input
                     type="number"
@@ -159,10 +162,10 @@ function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps
                     style={cardStyle}
                     placeholder="—"
                     value={marks[f.key] ?? ""}
-                    onChange={(e) => onChange(f.key, clampInput(e.target.value, f.max))}
+                    onChange={(e) => onChange(f.key, clampInput(e.target.value, currentMax))}
                     onFocus={(e) => e.target.select()}
                     min={0}
-                    max={f.max}
+                    max={currentMax}
                     step={0.5}
                   />
                 </label>

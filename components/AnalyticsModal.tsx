@@ -34,8 +34,11 @@ const STACK_KEYS = [
   { key: "end",  label: "END",  color: "#FB923C" },
 ];
 
-function getRaw(m: Partial<Marks>, key: CompKey): number | null {
-  if (key === "cia1") return m.cia1 ?? null;
+function getRaw(m: Partial<Marks>, key: CompKey, subjectCode: string): number | null {
+  if (key === "cia1") {
+    if (m.cia1 == null) return null;
+    return subjectCode === "MBA235" ? (m.cia1 * 15) / 25 : m.cia1;
+  }
   if (key === "cia2") return m.cia2 ?? null;
   if (key === "class_participation") return m.class_participation ?? null;
   if (key === "cia3") return m.cia3 ?? null;
@@ -104,19 +107,20 @@ export default function AnalyticsModal({ subjects, marks, onClose }: AnalyticsMo
   // Data
   const overviewData = useMemo(() => subjects.map(s => {
     const m = marks[s.code] ?? {};
-    const total = (m.cia1 ?? 0) + (m.cia2 ?? 0) + (m.class_participation ?? 0) + (m.cia3 ?? 0) + scaleEndSem(m.end_sem ?? null);
+    const c1 = s.code === "MBA235" ? ((m.cia1 ?? 0) * 15) / 25 : (m.cia1 ?? 0);
+    const total = c1 + (m.cia2 ?? 0) + (m.class_participation ?? 0) + (m.cia3 ?? 0) + scaleEndSem(m.end_sem ?? null);
     return { subject: s.short_name, full_name: s.full_name, percentage: Number(total.toFixed(1)), color: getSubjectColor(s.code).accent };
   }), [subjects, marks]);
 
   const stackedData = useMemo(() => subjects.map(s => {
     const m = marks[s.code] ?? {};
-    return { subject: s.short_name, cia1: m.cia1 ?? 0, cia2: m.cia2 ?? 0, cp: m.class_participation ?? 0, cia3: m.cia3 ?? 0, end: scaleEndSem(m.end_sem ?? null) };
+    return { subject: s.short_name, cia1: s.code === "MBA235" ? ((m.cia1 ?? 0) * 15) / 25 : (m.cia1 ?? 0), cia2: m.cia2 ?? 0, cp: m.class_participation ?? 0, cia3: m.cia3 ?? 0, end: scaleEndSem(m.end_sem ?? null) };
   }), [subjects, marks]);
 
   const multiData = useMemo(() => subjects.map(s => {
     const m = marks[s.code] ?? {};
     const row: Record<string, any> = { subject: s.short_name, full_name: s.full_name, code: s.code, color: getSubjectColor(s.code).accent };
-    for (const c of activeComps) row[c.key] = getRaw(m, c.key);
+    for (const c of activeComps) row[c.key] = getRaw(m, c.key, s.code);
     return row;
   }), [subjects, marks, selected]);
 

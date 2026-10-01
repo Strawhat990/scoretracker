@@ -25,8 +25,8 @@ export function scaleEndSem(raw: number | null): number {
   return Math.max(0, Math.min(raw, MAX.end_sem_raw));
 }
 
-export function computeGrade(marks: Partial<Marks>): GradeBreakdown {
-  const cia1 = marks.cia1 ?? 0;
+export function computeGrade(marks: Partial<Marks>, subjectCode?: string): GradeBreakdown {
+  const cia1 = subjectCode === "MBA235" ? ((marks.cia1 ?? 0) * 15) / 25 : (marks.cia1 ?? 0);
   const cia2 = marks.cia2 ?? 0;
   const cp = marks.class_participation ?? 0;
   const cia3 = marks.cia3 ?? 0;
