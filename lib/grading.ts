@@ -26,7 +26,7 @@ export function scaleEndSem(raw: number | null): number {
 }
 
 export function computeGrade(marks: Partial<Marks>, subjectCode?: string): GradeBreakdown {
-  const cia1 = subjectCode === "MBA235" ? ((marks.cia1 ?? 0) * 15) / 25 : (marks.cia1 ?? 0);
+  const cia1 = marks.cia1 ?? 0;
   const cia2 = marks.cia2 ?? 0;
   const cp = marks.class_participation ?? 0;
   const cia3 = marks.cia3 ?? 0;

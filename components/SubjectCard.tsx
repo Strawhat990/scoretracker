@@ -146,8 +146,7 @@ function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps
                   </div>
                 );
               }
-              const isMBA235CIA1 = subject.code === "MBA235" && f.key === "cia1";
-              const currentMax = isMBA235CIA1 ? 25 : f.max;
+              const currentMax = f.max;
 
               return (
                 <label key={f.key} className="block">
