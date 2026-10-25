@@ -4,6 +4,20 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+function getOrCreateDeviceId(): string {
+  const existing = localStorage.getItem("mba-tracker:device-id");
+  if (existing) return existing;
+  const id =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+        });
+  localStorage.setItem("mba-tracker:device-id", id);
+  return id;
+}
+
 const DEVICE_ID_KEY = "mba-tracker:device-id";
 const PROFILE_ID_KEY = "mba-tracker:profile-id";
 const RECOVERY_DONE_KEY = "mba-tracker:recovery-done";
@@ -20,21 +34,24 @@ export default function RecoverPage() {
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("checking");
+  const [forceShow, setForceShow] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProfileResult[]>([]);
   const [selected, setSelected] = useState<ProfileResult | null>(null);
-  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [deviceId, setDeviceId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const id = localStorage.getItem(DEVICE_ID_KEY);
+      // Ensure device ID exists (generate if first visit)
+      const id = getOrCreateDeviceId();
       setDeviceId(id);
 
       // ?force=true in URL skips all checks — lets you re-run recovery anytime
-      const forceShow = new URLSearchParams(window.location.search).get("force") === "true";
-      if (forceShow) {
+      const isForced = new URLSearchParams(window.location.search).get("force") === "true";
+      setForceShow(isForced);
+      if (isForced) {
         setStep("search");
         return;
       }
@@ -94,7 +111,10 @@ export default function RecoverPage() {
   }
 
   async function handleConfirm() {
-    if (!selected || !deviceId) return;
+    if (!selected || !deviceId) {
+      setError("Device ID missing. Please refresh and try again.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
