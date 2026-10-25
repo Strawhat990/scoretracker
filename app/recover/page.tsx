@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const DEVICE_ID_KEY = "mba-tracker:device-id";
@@ -18,10 +18,6 @@ type Step = "checking" | "search" | "results" | "confirm" | "success";
 
 export default function RecoverPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // ?force=true bypasses the redirect check — lets you re-run recovery anytime
-  const forceShow = searchParams.get("force") === "true";
 
   const [step, setStep] = useState<Step>("checking");
   const [query, setQuery] = useState("");
@@ -36,7 +32,8 @@ export default function RecoverPage() {
       const id = localStorage.getItem(DEVICE_ID_KEY);
       setDeviceId(id);
 
-      // Bypass: ?force=true skips all checks
+      // ?force=true in URL skips all checks — lets you re-run recovery anytime
+      const forceShow = new URLSearchParams(window.location.search).get("force") === "true";
       if (forceShow) {
         setStep("search");
         return;
@@ -66,7 +63,7 @@ export default function RecoverPage() {
 
       setStep("search");
     })();
-  }, [forceShow, router]);
+  }, [router]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
