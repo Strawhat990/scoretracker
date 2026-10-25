@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const DEVICE_ID_KEY = "mba-tracker:device-id";
 const PROFILE_ID_KEY = "mba-tracker:profile-id";
+const RECOVERY_DONE_KEY = "mba-tracker:recovery-done";
 
 interface ProfileResult {
   id: string;
@@ -13,11 +14,16 @@ interface ProfileResult {
   reg_no: string | null;
 }
 
-type Step = "search" | "results" | "confirm" | "success";
+type Step = "checking" | "search" | "results" | "confirm" | "success";
 
 export default function RecoverPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("search");
+  const searchParams = useSearchParams();
+
+  // ?force=true bypasses the redirect check — lets you re-run recovery anytime
+  const forceShow = searchParams.get("force") === "true";
+
+  const [step, setStep] = useState<Step>("checking");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProfileResult[]>([]);
   const [selected, setSelected] = useState<ProfileResult | null>(null);
@@ -26,9 +32,41 @@ export default function RecoverPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = localStorage.getItem(DEVICE_ID_KEY);
-    setDeviceId(id);
-  }, []);
+    (async () => {
+      const id = localStorage.getItem(DEVICE_ID_KEY);
+      setDeviceId(id);
+
+      // Bypass: ?force=true skips all checks
+      if (forceShow) {
+        setStep("search");
+        return;
+      }
+
+      // Fast path: recovery flag already set
+      if (localStorage.getItem(RECOVERY_DONE_KEY) === "true") {
+        router.replace("/");
+        return;
+      }
+
+      // Slow path: check if current profile already has marks in DB
+      const profileId = localStorage.getItem(PROFILE_ID_KEY);
+      if (profileId) {
+        const { count } = await supabase
+          .from("marks")
+          .select("*", { count: "exact", head: true })
+          .eq("profile_id", profileId);
+
+        if (count && count > 0) {
+          // Has real data — set flag for future fast-path and redirect
+          localStorage.setItem(RECOVERY_DONE_KEY, "true");
+          router.replace("/");
+          return;
+        }
+      }
+
+      setStep("search");
+    })();
+  }, [forceShow, router]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -70,12 +108,25 @@ export default function RecoverPage() {
       });
       if (err) throw err;
       localStorage.setItem(PROFILE_ID_KEY, selected.id);
+      localStorage.setItem(RECOVERY_DONE_KEY, "true");
       setStep("success");
     } catch (err: any) {
       setError(err.message ?? "Failed to relink device. Try again.");
     } finally {
       setLoading(false);
     }
+  }
+
+  // Loading / redirect in progress
+  if (step === "checking") {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-6 w-6 rounded-full border-2 border-white/20 border-t-sky-400 animate-spin" />
+          <p className="font-mono text-xs text-white/30">Checking device…</p>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -91,6 +142,11 @@ export default function RecoverPage() {
         <p className="mt-2 text-sm text-white/50 max-w-sm mx-auto">
           Enter your name or registration number to reconnect this device to your existing marks.
         </p>
+        {forceShow && (
+          <p className="mt-2 font-mono text-[10px] text-amber-400/60 uppercase tracking-widest">
+            ⚠ Force mode active
+          </p>
+        )}
       </div>
 
       <div className="w-full rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl shadow-2xl">
