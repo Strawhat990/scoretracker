@@ -10,6 +10,7 @@ const SUBJECTS_CACHE_TTL = 86400000; // 24h
 import { ensureDevice } from "@/lib/device";
 import { Subject, Marks, EMPTY_MARKS } from "@/types";
 import { computeGrade } from "@/lib/grading";
+import { getSubjectColor } from "@/lib/subjectColors";
 import SubjectCard from "@/components/SubjectCard";
 import ExtraMarkCard from "@/components/ExtraMarkCard";
 
@@ -204,7 +205,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-8 sm:px-6">
+      <div className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-8 sm:px-6 lg:max-w-6xl lg:px-8">
         <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="skeleton h-12 w-64 rounded-xl"></div>
           <div className="skeleton h-10 w-24 rounded-full"></div>
@@ -220,9 +221,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-6 sm:px-6">
+    <main className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-6 sm:px-6 lg:max-w-6xl lg:px-8">
       {/* Top Author Badge */}
-      <div className="mb-7 flex justify-center">
+      <div className="mb-7 flex justify-center lg:justify-start">
         <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-4 py-1.5 shadow-lg backdrop-blur-md transition-all hover:border-white/25 hover:bg-white/[0.08]">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -235,6 +236,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Two-column layout: main content left, sticky sidebar right (lg+) */}
+      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-8 xl:grid-cols-[1fr_320px]">
+
+        {/* ── LEFT COLUMN: header + cards ── */}
+        <div>
       {/* Header */}
       <header className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -409,6 +415,131 @@ export default function DashboardPage() {
           {saveState === "idle" && "Marks sync automatically across devices"}
         </span>
       </div>
+        </div>{/* end left column */}
+
+        {/* ── RIGHT SIDEBAR (lg+ only) ── */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-6 space-y-4">
+
+            {/* Overall score card */}
+            <div
+              className="glass-card rounded-2xl p-5"
+              style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.3)" }}
+            >
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-white/40">
+                MBA · Trimester {trimester}
+              </p>
+              <p className="font-serif text-[13px] font-semibold text-white/60 mb-3">Overall Average</p>
+              <div className="flex items-end gap-1 mb-3">
+                <span className="font-mono text-4xl font-bold text-white leading-none">{overall.toFixed(1)}</span>
+                <span className="font-mono text-lg text-white/40 mb-0.5">/100</span>
+              </div>
+              {/* Overall progress bar */}
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.min(overall, 100)}%`,
+                    background: "linear-gradient(90deg, #60A5FA, #93C5FD)",
+                    boxShadow: "0 0 10px rgba(147,197,253,0.4)",
+                  }}
+                />
+              </div>
+              <p className="mt-2 font-mono text-[10px] text-white/35">
+                Across {subjects.length} subjects
+              </p>
+            </div>
+
+            {/* Per-subject mini scores */}
+            {subjects.length > 0 && (
+              <div
+                className="glass-card rounded-2xl p-4"
+                style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.2)" }}
+              >
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-white/40">Subject Scores</p>
+                <div className="space-y-2.5">
+                  {subjects.map((s) => {
+                    const grade = computeGrade(marks[s.code] ?? {});
+                    const color = getSubjectColor(s.code);
+                    return (
+                      <div key={s.code}>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="min-w-0 flex-1">
+                            <span className="font-mono text-[10px] font-semibold" style={{ color: color.accent }}>
+                              {s.code}
+                            </span>
+                            <p className="truncate font-sans text-[11px] text-white/60 leading-tight">{s.full_name}</p>
+                          </div>
+                          <span className="ml-2 shrink-0 font-mono text-xs font-semibold text-white">
+                            {grade.grandTotal.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.07]">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(grade.percentage, 100)}%`,
+                              background: color.accent,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Quick actions */}
+            <div
+              className="glass-card rounded-2xl p-4"
+              style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.15)" }}
+            >
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-white/40">Quick Actions</p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setAnalyticsOpen(true)}
+                  className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
+                >
+                  <svg className="h-4 w-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span className="text-xs font-medium text-white/70">View Analytics</span>
+                </button>
+                <button
+                  onClick={() => setSyncOpen(true)}
+                  className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
+                >
+                  <svg className="h-4 w-4 text-sky-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="text-xs font-medium text-white/70">Sync Device</span>
+                </button>
+                <button
+                  onClick={() => setProfileModalOpen(true)}
+                  className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
+                >
+                  <svg className="h-4 w-4 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="text-xs font-medium text-white/70">Edit Profile</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Save status */}
+            <div className="text-center">
+              <span className="font-mono text-[10px] text-white/25">
+                {saveState === "saving" && "Saving…"}
+                {saveState === "saved" && "All changes saved"}
+                {saveState === "idle" && "Auto-synced across devices"}
+              </span>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>{/* end two-col grid */}
 
       {syncOpen && deviceId && profileId && (
         <SyncModal
