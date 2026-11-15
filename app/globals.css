@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Easing tokens (Emil Kowalski / animate skill) ── */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -28,6 +35,36 @@
   }
 }
 
+/* ── Card entrance stagger (choreograph skill) ── */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Sidebar panel entrance ── */
+@keyframes sidebar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Accordion expand/collapse (animate skill — grid trick) ── */
+@keyframes content-reveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @layer components {
   /* Base frosted-glass surface. Per-card accent/glow come in via the
      --accent / --glow CSS custom properties set inline per subject. */
@@ -38,19 +75,66 @@
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 20px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px rgba(0, 0, 0, 0.35);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    /* Improved easing: strong ease-out instead of built-in ease */
+    transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out);
     will-change: transform, box-shadow;
   }
-  .glass-card:hover {
-    border-color: color-mix(in srgb, var(--accent, #93c5fd) 45%, transparent);
-    box-shadow: 0 0 22px 1px var(--glow, rgba(147, 197, 253, 0.35)),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 30px rgba(0, 0, 0, 0.4);
-    transform: scale(1.02) translateY(-2px);
+  @media (hover: hover) and (pointer: fine) {
+    .glass-card:hover {
+      border-color: color-mix(in srgb, var(--accent, #93c5fd) 45%, transparent);
+      box-shadow: 0 0 22px 1px var(--glow, rgba(147, 197, 253, 0.35)),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 30px rgba(0, 0, 0, 0.4);
+      transform: scale(1.02) translateY(-2px);
+    }
   }
   .glass-card.is-open {
     border-color: color-mix(in srgb, var(--accent, #93c5fd) 55%, transparent);
     box-shadow: 0 0 32px 3px var(--glow, rgba(147, 197, 253, 0.4)),
       inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 36px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Sidebar glass cards — no scale hover (too frequent) */
+  .glass-card--static {
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .glass-card--static:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  /* Staggered card entrance — set --delay on each card via inline style */
+  .card-enter {
+    animation: card-enter 250ms var(--ease-out) both;
+    animation-delay: var(--delay, 0ms);
+  }
+
+  /* Sidebar panel entrance */
+  .sidebar-enter {
+    animation: sidebar-enter 300ms var(--ease-out) both;
+    animation-delay: var(--delay, 0ms);
+  }
+
+  /* Button press feedback (apple-design skill) */
+  .btn-press {
+    transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+  }
+  .btn-press:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+  }
+
+  /* Subject card header button press — subtler (high-frequency) */
+  .btn-press-subtle:active {
+    transform: scale(0.99);
+    transition: transform 100ms var(--ease-out);
   }
 
   .glass-panel {
@@ -64,7 +148,7 @@
     @apply w-full rounded-[10px] px-2 py-2 text-center font-mono text-[15px] font-medium text-white;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s var(--ease-out);
   }
   .glass-input::placeholder {
     color: rgba(255, 255, 255, 0.3);
@@ -74,6 +158,32 @@
     background: rgba(255, 255, 255, 0.08);
     border-color: var(--accent, #93c5fd);
     box-shadow: 0 0 0 3px var(--glow, rgba(147, 197, 253, 0.25));
+  }
+
+  /* Accordion grid trick — animates rows without animating height directly */
+  .accordion-grid {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 220ms var(--ease-out);
+  }
+  .accordion-grid.is-open {
+    grid-template-rows: 1fr;
+  }
+  .accordion-grid > * {
+    overflow: hidden;
+  }
+  /* Fade the content in slightly after the row opens */
+  .accordion-content {
+    opacity: 0;
+    transition: opacity 150ms var(--ease-out) 60ms;
+  }
+  .accordion-grid.is-open .accordion-content {
+    opacity: 1;
+  }
+
+  /* Progress bar — explicit property, strong ease-out (animate skill) */
+  .progress-bar {
+    transition: width 400ms var(--ease-out);
   }
 
   .ledger-rule {
@@ -90,5 +200,28 @@
   @keyframes skeleton-loading {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+  }
+
+  /* ── Reduced motion: gentler, not zero (animate skill) ── */
+  @media (prefers-reduced-motion: reduce) {
+    .card-enter,
+    .sidebar-enter {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .accordion-grid {
+      transition: none;
+    }
+    .accordion-content {
+      transition: opacity 100ms linear;
+    }
+    .progress-bar {
+      transition: width 150ms linear;
+    }
+    .glass-card,
+    .glass-card--static {
+      transition: border-color 0.15s linear, box-shadow 0.15s linear;
+    }
   }
 }

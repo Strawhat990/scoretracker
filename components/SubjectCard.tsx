@@ -11,6 +11,7 @@ interface SubjectCardProps {
   marks: Partial<Marks>;
   onChange: (field: keyof Marks, value: number | null) => void;
   defaultOpen?: boolean;
+  index?: number;
 }
 
 const FIELDS: {
@@ -24,22 +25,26 @@ const FIELDS: {
   { key: "cia3", label: "CIA 3", max: MAX.cia3 },
 ];
 
-function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps) {
+function SubjectCard({ subject, marks, onChange, defaultOpen, index = 0 }: SubjectCardProps) {
   const [open, setOpen] = useState(!!defaultOpen);
   const grade = computeGrade(marks, subject.code);
   const color = getSubjectColor(subject.code);
 
+  // Stagger delay: first 4 cards get individual delays, rest arrive with card 4
+  const staggerDelay = Math.min(index, 3) * 50;
+
   const cardStyle = {
     "--accent": color.accent,
     "--glow": color.glow,
+    "--delay": `${staggerDelay}ms`,
   } as CSSProperties;
 
   return (
-    <div className={`glass-card rounded-card ${open ? "is-open" : ""}`} style={cardStyle}>
+    <div className={`glass-card rounded-card card-enter ${open ? "is-open" : ""}`} style={cardStyle}>
       {/* Header row — always visible, tap to expand */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-4 px-4 py-4 text-left sm:px-5"
+        className="btn-press-subtle flex w-full items-center gap-4 px-4 py-4 text-left sm:px-5"
       >
         <ProgressSeal percentage={grade.percentage} accent={color.accent} glow={color.glow} />
 
@@ -77,8 +82,10 @@ function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps
         </div>
       </button>
 
-      {open && (
-        <div className="border-t border-white/[0.07] px-4 pb-5 pt-1 sm:px-5">
+      {/* Animated accordion — grid-template-rows trick avoids layout thrash */}
+      <div className={`accordion-grid ${open ? "is-open" : ""}`}>
+        <div>
+        <div className="accordion-content border-t border-white/[0.07] px-4 pb-5 pt-1 sm:px-5">
           {/* Internals */}
           <div className="mb-1 mt-3 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
@@ -222,8 +229,7 @@ function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.08]">
-              <div
-                className="h-full rounded-full transition-all duration-300"
+              <div className="h-full rounded-full progress-bar"
                 style={{
                   width: `${Math.min(grade.percentage, 100)}%`,
                   background: color.accent,
@@ -233,7 +239,8 @@ function SubjectCard({ subject, marks, onChange, defaultOpen }: SubjectCardProps
             </div>
           </div>
         </div>
-      )}
+        </div>
+      </div>{/* end accordion-grid */}
     </div>
   );
 }

@@ -2,6 +2,37 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+/** Count-up hook for the sidebar hero number (delight — rare/first-time) */
+function useCountUp(target: number, duration = 600) {
+  const [display, setDisplay] = useState(0);
+  const rafRef = useRef<number>(0);
+  const startRef = useRef<number | null>(null);
+  const fromRef = useRef(0);
+
+  useEffect(() => {
+    fromRef.current = display;
+    startRef.current = null;
+    cancelAnimationFrame(rafRef.current);
+    const from = fromRef.current;
+    const delta = target - from;
+    if (delta === 0) return;
+    const tick = (now: number) => {
+      if (!startRef.current) startRef.current = now;
+      const elapsed = now - startRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(from + delta * eased);
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
+  return display;
+}
 import { supabase } from "@/lib/supabase";
 
 const TRIMESTER_KEY = "mba-tracker:trimester";
@@ -203,6 +234,9 @@ export default function DashboardPage() {
     return sum / totals.length;
   }, [subjects, marks]);
 
+  // Count-up for sidebar hero number (delight — renders only on desktop lg+)
+  const overallDisplay = useCountUp(overall);
+
   if (loading) {
     return (
       <div className="mx-auto min-h-screen max-w-2xl px-4 pb-16 pt-8 sm:px-6 lg:max-w-6xl lg:px-8">
@@ -314,7 +348,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <button
             onClick={() => setAnalyticsOpen(true)}
-            className="glass-card flex shrink-0 items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-white/80 hover:text-white"
+            className="btn-press glass-card flex shrink-0 items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-white/80 hover:text-white"
             style={{ ["--accent" as any]: "#10B981", ["--glow" as any]: "rgba(16,185,129,0.4)" }}
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -324,7 +358,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setSyncOpen(true)}
-            className="glass-card flex shrink-0 items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-white/80 hover:text-white"
+            className="btn-press glass-card flex shrink-0 items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-white/80 hover:text-white"
             style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.4)" }}
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -351,6 +385,7 @@ export default function DashboardPage() {
             marks={marks[s.code] ?? {}}
             onChange={(field, value) => handleChange(s.code, field, value)}
             defaultOpen={false}
+            index={i}
           />
         ))}
       </div>
@@ -423,21 +458,21 @@ export default function DashboardPage() {
 
             {/* Overall score card */}
             <div
-              className="glass-card rounded-2xl p-5"
-              style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.3)" }}
+              className="glass-card--static rounded-2xl p-5 sidebar-enter"
+              style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.3)", ["--delay" as any]: "80ms" }}
             >
               <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-white/40">
                 MBA · Trimester {trimester}
               </p>
               <p className="font-serif text-[13px] font-semibold text-white/60 mb-3">Overall Average</p>
               <div className="flex items-end gap-1 mb-3">
-                <span className="font-mono text-4xl font-bold text-white leading-none">{overall.toFixed(1)}</span>
+                <span className="font-mono text-4xl font-bold text-white leading-none">{overallDisplay.toFixed(1)}</span>
                 <span className="font-mono text-lg text-white/40 mb-0.5">/100</span>
               </div>
               {/* Overall progress bar */}
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
                 <div
-                  className="h-full rounded-full transition-all duration-500"
+                  className="h-full rounded-full progress-bar"
                   style={{
                     width: `${Math.min(overall, 100)}%`,
                     background: "linear-gradient(90deg, #60A5FA, #93C5FD)",
@@ -453,8 +488,8 @@ export default function DashboardPage() {
             {/* Per-subject mini scores */}
             {subjects.length > 0 && (
               <div
-                className="glass-card rounded-2xl p-4"
-                style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.2)" }}
+                className="glass-card--static rounded-2xl p-4 sidebar-enter"
+                style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.2)", ["--delay" as any]: "140ms" }}
               >
                 <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-white/40">Subject Scores</p>
                 <div className="space-y-2.5">
@@ -475,8 +510,7 @@ export default function DashboardPage() {
                           </span>
                         </div>
                         <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.07]">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
+                          <div className="h-full rounded-full progress-bar"
                             style={{
                               width: `${Math.min(grade.percentage, 100)}%`,
                               background: color.accent,
@@ -492,14 +526,14 @@ export default function DashboardPage() {
 
             {/* Quick actions */}
             <div
-              className="glass-card rounded-2xl p-4"
-              style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.15)" }}
+              className="glass-card--static rounded-2xl p-4 sidebar-enter"
+              style={{ ["--accent" as any]: "#93C5FD", ["--glow" as any]: "rgba(147,197,253,0.15)", ["--delay" as any]: "200ms" }}
             >
               <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-white/40">Quick Actions</p>
               <div className="space-y-2">
                 <button
                   onClick={() => setAnalyticsOpen(true)}
-                  className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
+                  className="btn-press flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
                 >
                   <svg className="h-4 w-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -508,7 +542,7 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={() => setSyncOpen(true)}
-                  className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
+                  className="btn-press flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
                 >
                   <svg className="h-4 w-4 text-sky-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -517,7 +551,7 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={() => setProfileModalOpen(true)}
-                  className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
+                  className="btn-press flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]"
                 >
                   <svg className="h-4 w-4 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
